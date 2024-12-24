@@ -27,7 +27,6 @@ const getJSON = async function (url) {
     const res = await fetch(url);
     const data = await res.json();
     if (!res.ok) throw new Error(`${data.message} status code: ${res.status}`);
-    console.log(data);
     return data;
   } catch (err) {
     console.log(err);
@@ -35,20 +34,25 @@ const getJSON = async function (url) {
   }
 };
 
-const displayRecipe = async function (url) {
+const renderSpinner = function () {
+  const spinner = `
+  <div class="spinner">
+    <svg>
+      <use href="${icons}#icon-loader"></use>
+    </svg>
+  </div> `;
+  recipeContainer.innerHTML = '';
+  recipeContainer.insertAdjacentHTML('afterbegin', spinner);
+};
+
+const displayRecipe = async function () {
   try {
-    const url1 = window.location.hash;
-    console.log(url1);
-    const spinner = `
-    <div class="spinner">
-      <svg>
-        <use href="${icons}#icon-loader"></use>
-      </svg>
-    </div> `;
-    recipeContainer.innerHTML = '';
-    recipeContainer.insertAdjacentHTML('afterbegin', spinner);
-    const data = await getJSON(url);
-    console.log(data.data);
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    renderSpinner();
+    const data = await getJSON(
+      `https://forkify-api.herokuapp.com/api/v2/recipes/${id}`
+    );
     let recipe = data.data.recipe;
     recipe = {
       id: recipe.id,
@@ -168,4 +172,6 @@ const displayRecipe = async function (url) {
   }
 };
 
-displayRecipe(url);
+['load', 'hashchange'].forEach(ev =>
+  window.addEventListener(ev, displayRecipe)
+);
